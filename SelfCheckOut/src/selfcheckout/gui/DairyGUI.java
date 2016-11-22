@@ -12,86 +12,92 @@ import java.awt.event.ActionListener;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JButton;
+import javax.swing.text.StyledDocument;
 import selfcheckout.mysql.MySQLConn;
 
 /**
  *
  * @author Vocany
  */
-public class SearchResultGUI extends javax.swing.JFrame 
+public class DairyGUI extends javax.swing.JFrame
 {
     TransactionGUI tr;
-    String searchWord;
     double totalPrice;
-    GridLayout searchLayout;
-    //Connecting to the MySQL DB
-    MySQLConn connection = new MySQLConn();
+    
+    //Connecting to the MySQL database
+    MySQLConn connect = new MySQLConn();
     Connection conn = null;
+
     /**
-     * Creates new form SearchResultGUI
+     * Creates new form DairyGUI
      */
-    public SearchResultGUI() {
+    public DairyGUI()
+    {
         initComponents();
         
         //GridLayout to store the buttons for each Dairy product
-        searchLayout = new GridLayout(0,4);
+        GridLayout dairyLayout = new GridLayout(0,4);
         
         //Set the GridLayout as the layout for the panel
-        jPanel1.setLayout(searchLayout);
+        jPanel1.setLayout(dairyLayout);
         
         //Adjust the horizontal and vertical gaps between buttons
-        searchLayout.setHgap(10);
-        searchLayout.setVgap(10);
+        dairyLayout.setHgap(10);
+        dairyLayout.setVgap(10);
         
         //Preferred Size of the buttons
         JButton b = new JButton("Just a fake button");
         Dimension buttonSize = b.getPreferredSize();
         jPanel1.setPreferredSize(new Dimension((int)(buttonSize.getWidth() * 3.5) + 10,
             (int)(buttonSize.getHeight() * 3.5) + 10 * 2));
+        
+        //Display the items
+        DisplayItems();
     }
-
-    public SearchResultGUI(TransactionGUI tr) 
+    
+    public DairyGUI(TransactionGUI tr)
     {
         initComponents();
         this.tr = tr;
-
+        
         //GridLayout to store the buttons for each Dairy product
-        searchLayout = new GridLayout(0,4);
+        GridLayout dairyLayout = new GridLayout(0,4);
         
         //Set the GridLayout as the layout for the panel
-        jPanel1.setLayout(searchLayout);
+        jPanel1.setLayout(dairyLayout);
         
         //Adjust the horizontal and vertical gaps between buttons
-        searchLayout.setHgap(10);
-        searchLayout.setVgap(10);
+        dairyLayout.setHgap(10);
+        dairyLayout.setVgap(10);
         
         //Preferred Size of the buttons
         JButton b = new JButton("Just a fake button");
         Dimension buttonSize = b.getPreferredSize();
         jPanel1.setPreferredSize(new Dimension((int)(buttonSize.getWidth() * 3.5) + 10,
             (int)(buttonSize.getHeight() * 3.5) + 10 * 2));
+        
+        //Display the items
+        DisplayItems();
     }
     
-    //Method to display the search results
-    public void DisplaySearch(String word)
+    //Will display all the items in the Dairy category
+    private void DisplayItems()
     {
-        //Number of rows for the result set
-        int rows = 0;
         try
         {
-            //Connect and open the connection to the DB
-            conn = connection.DBUtils();
-
-            //Create the query and the result set to get the results
-            String query = "SELECT * FROM SelfCheckOut.Products WHERE Name LIKE ?";
-            PreparedStatement stmt = conn.prepareStatement(query, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-            stmt.setString(1, "%" + word + "%");
-            ResultSet rs = stmt.executeQuery();
-            rs.next();
-
+            //Number of rows for the ResultSet
+            int rows = 0;
+            //Connect and open the connection to the database
+            conn = connect.DBUtils();
+            
+            //Create the query and result set to get the results
+            Statement stmt = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+            ResultSet rs = stmt.executeQuery("SELECT Name FROM SelfCheckOut.Products WHERE Type='Dairy'");
+            
             //Find the number of rows
             if(rs.last())
             {
@@ -99,8 +105,8 @@ public class SearchResultGUI extends javax.swing.JFrame
                 //Move the cursor to the beginning
                 rs.beforeFirst();
             }
-
-            //Create Buttons for each product that matches the search word
+            
+            //Create buttons for each product
             for(int i = 0; i < rows; i++)
             {
                 if(rs.next() != false)
@@ -111,14 +117,20 @@ public class SearchResultGUI extends javax.swing.JFrame
                     jPanel1.add(button);
                 }
             }
-
+            
+            //Close the connections
+            rs.close();
+            conn.close();
+            
+            
         }catch (Exception ex)
         {
-            Logger.getLogger(SearchResultGUI.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(DairyGUI.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     
-    //Action listener to take input from the search bar
+    //This action listener responds to the buttons on the dairy product list menu
+    //and adds them to the cart
     private ActionListener addToCart = new ActionListener()
     {
         double priceOfProduct;
@@ -130,7 +142,7 @@ public class SearchResultGUI extends javax.swing.JFrame
             try
             {
                 //Connect and open the connection the the DB
-                conn = connection.DBUtils();
+                conn = connect.DBUtils();
                 
                 //Create the query and result set to get the results
                 String query = "SELECT Price FROM SelfCheckOut.Products WHERE Name=?";
@@ -156,8 +168,7 @@ public class SearchResultGUI extends javax.swing.JFrame
             //Update the total price
             totalPrice = Double.parseDouble(tr.getTotal()) + priceOfProduct;
             tr.setTotal("" + totalPrice);
-            jPanel1.removeAll();
-            SearchResultGUI.this.dispose();
+            DairyGUI.this.dispose();
         }
     };
     /**
@@ -167,14 +178,13 @@ public class SearchResultGUI extends javax.swing.JFrame
      */
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
-    private void initComponents()
-    {
+    private void initComponents() {
 
         jPanel1 = new javax.swing.JPanel();
         jPanel2 = new javax.swing.JPanel();
-        jButton1 = new javax.swing.JButton();
+        backButton = new javax.swing.JButton();
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setName("DairyFrame"); // NOI18N
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -184,44 +194,42 @@ public class SearchResultGUI extends javax.swing.JFrame
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 433, Short.MAX_VALUE)
+            .addGap(0, 444, Short.MAX_VALUE)
         );
-
-        jButton1.setFont(new java.awt.Font("Consolas", 1, 24)); // NOI18N
-        jButton1.setText("BACK");
-        jButton1.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                jButton1ActionPerformed(evt);
-            }
-        });
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel2Layout.createSequentialGroup()
-                .addGap(244, 244, 244)
-                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 249, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(262, Short.MAX_VALUE))
+            .addGap(0, 152, Short.MAX_VALUE)
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
-                .addGap(0, 34, Short.MAX_VALUE)
-                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 66, javax.swing.GroupLayout.PREFERRED_SIZE))
+            .addGap(0, 59, Short.MAX_VALUE)
         );
+
+        backButton.setFont(new java.awt.Font("Consolas", 1, 24)); // NOI18N
+        backButton.setText("BACK");
+        backButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        backButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                backButtonActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
+                .addGap(158, 158, 158)
+                .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(backButton, javax.swing.GroupLayout.PREFERRED_SIZE, 173, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(287, Short.MAX_VALUE))
+            .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -229,58 +237,69 @@ public class SearchResultGUI extends javax.swing.JFrame
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 91, Short.MAX_VALUE)
-                .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 118, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(backButton, javax.swing.GroupLayout.PREFERRED_SIZE, 51, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap())
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_jButton1ActionPerformed
-    {//GEN-HEADEREND:event_jButton1ActionPerformed
+    private void backButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_backButtonActionPerformed
+    {//GEN-HEADEREND:event_backButtonActionPerformed
         // TODO add your handling code here:
-        jPanel1.removeAll();
-        SearchResultGUI.this.dispose();
-    }//GEN-LAST:event_jButton1ActionPerformed
+        DairyGUI.this.dispose();
+    }//GEN-LAST:event_backButtonActionPerformed
 
     /**
      * @param args the command line arguments
      */
-    public static void main(String args[]) {
+    public static void main(String args[])
+    {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
          * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
          */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
+        try
+        {
+            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels())
+            {
+                if ("Nimbus".equals(info.getName()))
+                {
                     javax.swing.UIManager.setLookAndFeel(info.getClassName());
                     break;
                 }
             }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(SearchResultGUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(SearchResultGUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(SearchResultGUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(SearchResultGUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (ClassNotFoundException ex)
+        {
+            java.util.logging.Logger.getLogger(DairyGUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (InstantiationException ex)
+        {
+            java.util.logging.Logger.getLogger(DairyGUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (IllegalAccessException ex)
+        {
+            java.util.logging.Logger.getLogger(DairyGUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (javax.swing.UnsupportedLookAndFeelException ex)
+        {
+            java.util.logging.Logger.getLogger(DairyGUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
 
         /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new SearchResultGUI().setVisible(true);
+        java.awt.EventQueue.invokeLater(new Runnable()
+        {
+            public void run()
+            {
+                new DairyGUI().setVisible(true);
             }
         });
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
+    private javax.swing.JButton backButton;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     // End of variables declaration//GEN-END:variables
